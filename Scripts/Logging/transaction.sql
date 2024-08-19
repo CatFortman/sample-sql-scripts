@@ -3,13 +3,11 @@ BEGIN TRY
         
 		--Add code here
  
-PRINT 'Rolling back transaction'
 ROLLBACK TRANSACTION
 END TRY
 BEGIN
 CATCH
-
- DECLARE @error INT, 
+    DECLARE @error INT, 
             @message VARCHAR(4000), 
             @severity INT, 
             @state INT, 
@@ -25,37 +23,20 @@ SELECT
    ,@procedure = ERROR_PROCEDURE()
    ,@line = ERROR_LINE();
 
--- Check the transaction state
-    IF XACT_STATE() = -1
+    -- Always roll back the transaction first
+    IF @@TRANCOUNT > 0
     BEGIN
-        -- The transaction is in an uncommittable state and must be rolled back immediately
         ROLLBACK TRANSACTION;
+    END
 
--- You can now log the error because the transaction has been rolled back
+-- Now log the error after the rollback
 EXEC Core.LogError @ErrorNumber = @error
 				  ,@ErrorMessage = @message
 				  ,@ErrorSeverity = @severity
 				  ,@ErrorState = @state
 				  ,@ErrorProcedure = @procedure
 				  ,@ErrorLine = @line;
-END
-ELSE
-IF XACT_STATE() = 1
-BEGIN
--- The transaction is committable but has an error, so it needs to be rolled back
-ROLLBACK TRANSACTION;
 
--- Log the error after rolling back
-EXEC Core.LogError @ErrorNumber = @error
-				  ,@ErrorMessage = @message
-				  ,@ErrorSeverity = @severity
-				  ,@ErrorState = @state
-				  ,@ErrorProcedure = @procedure
-				  ,@ErrorLine = @line;
-END
-
-IF @@TRANCOUNT > 0
-BEGIN
-ROLLBACK
-END
-END CATCH
+    -- Re-raise the original error
+    RAISERROR('usp_my_procedure_name: %d: %s', 16, 1, @error, @message);
+END CATCH;
