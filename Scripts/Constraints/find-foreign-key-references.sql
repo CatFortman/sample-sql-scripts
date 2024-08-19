@@ -21,5 +21,5 @@ ON tab2.schema_id = sch2.schema_id
 INNER JOIN sys.columns col2
 ON col2.column_id = referenced_column_id AND col2.object_id = tab2.object_id
 WHERE tab2.name IN( 'Language')
-AND sch2.name IN ('Config')
+AND sch2.name IN ('Core')
 AND col2.name IN ('LanguageId')
