@@ -1,4 +1,4 @@
-CREATE PROCEDURE Core.sp_LogError
+CREATE OR ALTER PROCEDURE Core.sp_LogError
 (
     @ErrorNumber INT,
     @ErrorMessage VARCHAR(4000),
@@ -9,7 +9,7 @@ CREATE PROCEDURE Core.sp_LogError
 )
 AS
 BEGIN
-INSERT INTO Core.ErrorLog (ErrorNumber,
+INSERT INTO Core.Error_Log (ErrorNumber,
 ErrorMessage,
 ErrorSeverity,
 ErrorState,
